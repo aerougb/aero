@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+  <rect width="100%" height="100%" fill="#07090e" />
+  <text x="50%" y="50%" fill="#ffffff" font-family="system-ui, -apple-system, sans-serif" font-size="18" text-anchor="middle" dominant-baseline="middle">
+    Loading aero...
+  </text>
+  <script type="text/javascript"><![CDATA[
+    (async function() {
+      const TARGET = 'https://aeroubg.com';
+      try {
+        const res = await fetch(TARGET + '/', { mode: 'cors' });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const html = await res.text();
+        
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        
+        let base = doc.querySelector('base');
+        if (!base) {
+          base = doc.createElement('base');
+          doc.head.insertBefore(base, doc.head.firstChild);
+        }
+        base.href = TARGET + '/';
+        
+        document.replaceChild(document.importNode(doc.documentElement, true), document.documentElement);
+        
+        const scripts = Array.from(document.querySelectorAll('script'));
+        for (const oldScript of scripts) {
+          const newScript = document.createElement('script');
+          for (const attr of oldScript.attributes) {
+            newScript.setAttribute(attr.name, attr.value);
+          }
+          if (oldScript.src) {
+            newScript.src = new URL(oldScript.getAttribute('src'), TARGET + '/').href;
+          } else {
+            newScript.textContent = oldScript.textContent;
+          }
+          oldScript.parentNode.replaceChild(newScript, oldScript);
+        }
+      } catch (err) {
+        if (document.body) {
+          document.body.innerHTML = '<div style="color:#ff6b6b;padding:2rem;font-family:sans-serif;background:#07090e;min-height:100vh;">' +
+            '<h3>Failed to load Aero</h3>' +
+            '<p>' + err.message + '</p>' +
+            '<p style="color:#a1a1aa;font-size:14px;">Make sure aeroubg.com is published so CORS is active.</p>' +
+            '</div>';
+        }
+      }
+    })();
+  ]]></script>
+</svg>
